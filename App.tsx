@@ -1,5 +1,4 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { FC, useEffect } from "react";
 import Animated, {
   Easing,
@@ -17,9 +16,11 @@ export default function App() {
     <View style={styles.container}>
       <ProgressIndicator
         duration={1000}
-        // itemWidth={8} itemHeight={2}
+        itemWidth={16}
+        itemHeight={8}
+        itemsOffset={4}
+        topScale={4}
       />
-      <StatusBar style="auto" />
     </View>
   );
 }
@@ -29,7 +30,16 @@ export const ProgressIndicator: FC<{
   itemWidth?: number;
   itemHeight?: number;
   duration?: number;
-}> = ({ count = 8, itemWidth = 16, itemHeight = 4, duration = 5000 }) => {
+  itemsOffset?: number;
+  topScale?: number;
+}> = ({
+  count = 8,
+  itemWidth = 16,
+  itemHeight = 4,
+  duration = 5000,
+  itemsOffset = 4,
+  topScale = 4,
+}) => {
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -49,8 +59,8 @@ export const ProgressIndicator: FC<{
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        height: itemHeight * 4,
-        width: (itemWidth + 4) * count,
+        height: itemHeight * topScale,
+        width: (itemWidth + itemsOffset) * count,
       }}
     >
       {[...Array(count)].map((x, index) => (
@@ -61,6 +71,7 @@ export const ProgressIndicator: FC<{
           height={itemHeight}
           progress={progress}
           count={count}
+          topScale={topScale}
         />
       ))}
     </View>
@@ -70,10 +81,11 @@ export const ProgressIndicator: FC<{
 export const ProgressItem: FC<{
   index: number;
   count: number;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   progress: SharedValue<number>;
-}> = ({ index, width = 16, height = 4, progress, count }) => {
+  topScale: number;
+}> = ({ index, width, height, progress, count, topScale }) => {
   const animtedStyle = useAnimatedStyle(() => {
     const tak = 3;
     // const ticks = count * tak;
@@ -81,7 +93,7 @@ export const ProgressItem: FC<{
     const scaleY = interpolate(
       progress.value,
       [index / ticks, (index + tak) / ticks, (index + 2 * tak) / ticks],
-      [height, height * 4, height],
+      [1, topScale, 1],
       Extrapolation.CLAMP
     );
     return {
