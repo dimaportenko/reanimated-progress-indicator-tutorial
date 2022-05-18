@@ -1,14 +1,13 @@
+import React, { FC, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { FC, useEffect } from "react";
 import Animated, {
-  Easing,
+  useSharedValue,
+  withTiming,
+  SharedValue,
   Extrapolation,
   interpolate,
-  SharedValue,
   useAnimatedStyle,
-  useSharedValue,
   withRepeat,
-  withTiming,
 } from "react-native-reanimated";
 
 export default function App() {
@@ -33,24 +32,17 @@ export const ProgressIndicator: FC<{
   itemsOffset?: number;
   topScale?: number;
 }> = ({
-  count = 8,
-  itemWidth = 16,
-  itemHeight = 4,
-  duration = 5000,
-  itemsOffset = 4,
-  topScale = 4,
-}) => {
+        count = 8,
+        itemWidth = 16,
+        itemHeight = 4,
+        duration = 5000,
+        itemsOffset = 4,
+        topScale = 4,
+      }) => {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    progress.value = withRepeat(
-      withTiming(1, {
-        duration,
-        easing: Easing.inOut(Easing.ease),
-      }),
-      -1,
-      true
-    );
+    progress.value = withRepeat(withTiming(1, { duration }), -1, true);
   }, []);
 
   return (
@@ -69,9 +61,9 @@ export const ProgressIndicator: FC<{
           index={index}
           width={itemWidth}
           height={itemHeight}
-          progress={progress}
           count={count}
           topScale={topScale}
+          progress={progress}
         />
       ))}
     </View>
@@ -83,16 +75,19 @@ export const ProgressItem: FC<{
   count: number;
   width: number;
   height: number;
-  progress: SharedValue<number>;
   topScale: number;
-}> = ({ index, width, height, progress, count, topScale }) => {
-  const animtedStyle = useAnimatedStyle(() => {
-    const tak = 3;
-    // const ticks = count * tak;
-    const ticks = count - 1 + 2 * tak;
+  progress: SharedValue<number>;
+}> = ({ index, width, height, count, topScale, progress }) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const parts = 3;
+    const wholeCount = count - 1 + 2 * parts;
     const scaleY = interpolate(
       progress.value,
-      [index / ticks, (index + tak) / ticks, (index + 2 * tak) / ticks],
+      [
+        index / wholeCount,
+        (index + parts) / wholeCount,
+        (index + 2 * parts) / wholeCount,
+      ],
       [1, topScale, 1],
       Extrapolation.CLAMP
     );
@@ -108,7 +103,7 @@ export const ProgressItem: FC<{
           height,
           backgroundColor: "black",
         },
-        animtedStyle,
+        animatedStyle,
       ]}
     />
   );
@@ -121,5 +116,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  progressItem: {},
 });
