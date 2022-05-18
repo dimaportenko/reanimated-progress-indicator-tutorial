@@ -1,15 +1,5 @@
 import { StyleSheet, View } from "react-native";
 import { FC, useEffect } from "react";
-import Animated, {
-  Easing,
-  Extrapolation,
-  interpolate,
-  SharedValue,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
 
 export default function App() {
   return (
@@ -40,19 +30,6 @@ export const ProgressIndicator: FC<{
   itemsOffset = 4,
   topScale = 4,
 }) => {
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withRepeat(
-      withTiming(1, {
-        duration,
-        easing: Easing.inOut(Easing.ease),
-      }),
-      -1,
-      true
-    );
-  }, []);
-
   return (
     <View
       style={{
@@ -69,7 +46,6 @@ export const ProgressIndicator: FC<{
           index={index}
           width={itemWidth}
           height={itemHeight}
-          progress={progress}
           count={count}
           topScale={topScale}
         />
@@ -83,32 +59,16 @@ export const ProgressItem: FC<{
   count: number;
   width: number;
   height: number;
-  progress: SharedValue<number>;
   topScale: number;
-}> = ({ index, width, height, progress, count, topScale }) => {
-  const animtedStyle = useAnimatedStyle(() => {
-    const tak = 3;
-    // const ticks = count * tak;
-    const ticks = count - 1 + 2 * tak;
-    const scaleY = interpolate(
-      progress.value,
-      [index / ticks, (index + tak) / ticks, (index + 2 * tak) / ticks],
-      [1, topScale, 1],
-      Extrapolation.CLAMP
-    );
-    return {
-      transform: [{ scaleY }],
-    };
-  });
+}> = ({ index, width, height, count, topScale }) => {
   return (
-    <Animated.View
+    <View
       style={[
         {
           width,
           height,
           backgroundColor: "black",
         },
-        animtedStyle,
       ]}
     />
   );
