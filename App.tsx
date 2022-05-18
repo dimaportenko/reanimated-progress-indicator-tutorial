@@ -1,5 +1,14 @@
+import React, { FC, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { FC, useEffect } from "react";
+import Animated, {
+  useSharedValue,
+  withTiming,
+  SharedValue,
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  withRepeat,
+} from "react-native-reanimated";
 
 export default function App() {
   return (
@@ -23,13 +32,19 @@ export const ProgressIndicator: FC<{
   itemsOffset?: number;
   topScale?: number;
 }> = ({
-  count = 8,
-  itemWidth = 16,
-  itemHeight = 4,
-  duration = 5000,
-  itemsOffset = 4,
-  topScale = 4,
-}) => {
+        count = 8,
+        itemWidth = 16,
+        itemHeight = 4,
+        duration = 5000,
+        itemsOffset = 4,
+        topScale = 4,
+      }) => {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withRepeat(withTiming(1, { duration }), -1, true);
+  }, []);
+
   return (
     <View
       style={{
@@ -48,6 +63,7 @@ export const ProgressIndicator: FC<{
           height={itemHeight}
           count={count}
           topScale={topScale}
+          progress={progress}
         />
       ))}
     </View>
@@ -60,15 +76,34 @@ export const ProgressItem: FC<{
   width: number;
   height: number;
   topScale: number;
-}> = ({ index, width, height, count, topScale }) => {
+  progress: SharedValue<number>;
+}> = ({ index, width, height, count, topScale, progress }) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const parts = 3;
+    const wholeCount = count - 1 + 2 * parts;
+    const scaleY = interpolate(
+      progress.value,
+      [
+        index / wholeCount,
+        (index + parts) / wholeCount,
+        (index + 2 * parts) / wholeCount,
+      ],
+      [1, topScale, 1],
+      Extrapolation.CLAMP
+    );
+    return {
+      transform: [{ scaleY }],
+    };
+  });
   return (
-    <View
+    <Animated.View
       style={[
         {
           width,
           height,
           backgroundColor: "black",
         },
+        animatedStyle,
       ]}
     />
   );
@@ -81,5 +116,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  progressItem: {},
 });
